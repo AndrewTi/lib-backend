@@ -2,7 +2,7 @@ const Books = require("../models/books.js");
 
 
 module.exports = {
-    findBook (req, res, next) {
+    findBook(req, res, next) {
         Books.findById(req.query.id, (err, book) => {
             if(err) {
                 console.log(err);
@@ -16,7 +16,7 @@ module.exports = {
         })
     },
 
-    search (req, res, next) {
+    search(req, res, next) {
         const promise = new Promise((resovle, err) => {
             Books.find({}, (err, data) => {
                 if(err) {
@@ -46,7 +46,7 @@ module.exports = {
         
     },
 
-    saveBook (req, res, next) {
+    saveBook(req, res, next) {
         let addData = new Books({
             title: "Hello world",
             authors: [{name: "Andrew"}, {name: "Andrew2"}],
@@ -59,7 +59,7 @@ module.exports = {
         })
     },
 
-    removeBook (req, res, next) {
+    removeBook(req, res, next) {
         Books.findByIdAndRemove(req.body.id, (err, book) => {
             if(err) {
                 console.log("not remove");

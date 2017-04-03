@@ -3,11 +3,10 @@ const Schema = mongoose.Schema;
 
 const User = new Schema({
     name: String,
-    lastName: String,
-    password: String,
-    author: [{book: String, id: Number, date: Date,}],
+    password: { type: String, select: false },
+    author: [{ book: String, id: Number, date: Date }],
     img: String,
-    comments: [{book: String, body: String, date: Date}],
+    comments: [{ book: String, body: String, date: Date }]
 }, {
     collection: "users"
 })

@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const Books = new Schema({
-    title: String,
-    authors: [{name: String}],
+    title: { type:String },
+    authors: [{ name: String }],
     keywords: String,
     id: [{ type: mongoose.Schema.Types.ObjectId, ref: 'books' }],
     body: String,
