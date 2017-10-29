@@ -9,13 +9,26 @@ mongoose.connection.on('error', (err) => {
 
 const app = express();
 
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+app.use(bodyParser.json());
 
 app
-    .use("/api", require("./route/books.js"));
-    // .use("/api", require("./route/users.js"))
+    .use("/api", require("./route/books.js"))
+    .use("/api", require("./route/users.js"))
 
-app.listen(3007);
+    .use((err, req, res, next) => {
+        res.status(err.statusCode || 200);
+        
+        if(err) {
+            res.json({
+                error: true,
+                code: err.statusCode || 500,
+                message: err.message
+            });
+        }
+        next();
+    })
+
+app.listen(3007, ()=> {
+    console.log("server listen: ", 3007, "port");
+});
 
