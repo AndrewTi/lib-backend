@@ -6,9 +6,9 @@ route
     .post("/user/login", User.login)
     .post("/user/singup", User.create)
     .post("/user/forgot", User.forgot);
-    // .get("user/reset-pass", User.resetPass)
+    // .post("user/reset-pass", User.resetPass)
     // .get("user/search", User.search)
-    // .get('user/:id/update-ifno', User.updateInfo);
+    // .put('user/:id/update-ifno', User.updateInfo);
 
 
 module.exports = route;

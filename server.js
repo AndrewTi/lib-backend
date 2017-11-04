@@ -16,16 +16,19 @@ app
     .use("/api", require("./route/users.js"))
 
     .use((err, req, res, next) => {
-        res.status(err.statusCode || 200);
-        
-        if(err) {
-            res.json({
-                error: true,
-                code: err.statusCode || 500,
-                message: err.message
-            });
+
+        if(err.name == "CustomError") {
+            res.status(err.statusCode || 200);
+            
+            if(err) {
+                res.json({
+                    error: true,
+                    code: err.statusCode || 500,
+                    message: err.message
+                });
+            }
+            next();
         }
-        next();
     })
 
 app.listen(3007, ()=> {

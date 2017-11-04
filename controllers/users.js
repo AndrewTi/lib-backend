@@ -8,102 +8,95 @@ module.exports = {
     async _find(req, res, next) {
         const id = req.params.id;
 
-        User.findById(id, (err, user) => {
-            if(user) {
-                req._user = user; 
-                next();
-            } else 
-                next(new AppError(404));
+        let result = await User.findById(id);
+
+        if(result) {
+            req._user = result;
+            next();
+        }else {
+            next( new AppError(404) );
+        }
+
+    },
+
+    async login(req, res, next) {
+        let { name, password } = req.body;
+
+        if(!(password && name)) return next( new AppError(400) );
+
+        let result = await User.findOne({ 
+            name: name, 
+            password: passHash.generate(password)
         });
 
+        if(result) {
+            res.json({
+                result: {
+                    token: token.create(usr._id)
+                }
+            })
+        }else {
+            next(new AppError(404));
+        }
     },
 
-    login(req, res, next) {
-        const data = req.body;
-
-        if(!(data.password && data.name)) return next( new AppError(400) );
-
-        User.findOne({ 
-            name: data.name, 
-            password: passHash.generate(data.password)
-        }, (err, usr) => {
-            if(err) {
-                next(new AppError(500));
-            }else if(!usr) {
-                next(new AppError(404));
-            } else {
-                res.json({
-                    result: {
-                        user: usr.toJSON(),
-                        token: token.create(usr._id)
-                    }
-                })
-            }
-        })
-    },
-
-    create(req, res, next) {
-        let { email, name, password } = req.body;
+    async create(req, res, next) {
+        let { email, name, password, img } = req.body;
 
         if(!email && !password  && !name) {
             return next( new AppError(400) );
         }
 
-        User.findOne({ email }, (err, exist) => {
-            if(exist) {
-                next( new AppError(409) );
-            }else if(err) {
-                next(err);
-            }else {
-                let user = new User({
-                    name: data.name,
-                    email: data.email,
-                    password: passHash.generate(data.password),
-                    img: data.img || null
-                })
+        let existUser = await User.findOne({ email });
+
+        if(existUser) {
+            return next( new AppError(409) );
+        }
+
+        let user = new User({
+            name,
+            email,
+            password: passHash.generate(password),
+            img: img || null
+        });
+          
+        let saveUser = await user.save();
+
+        if(saveUser) {
+            res.json({
+                result: {
+                    token: token.create(usr._id)
+                }
+            })
+            next( new AppError(201) );
+        }
         
-                user.save((err, usr) => {
-                    if(err) {
-                        next( new AppError(500) );
-                    }else if (!usr) {
-                        next( new AppError(404) );
-                    }else {
-                        res.json({
-                            result: {
-                                token: token.create(usr._id)
-                            }
-                        })
-                    }
-                })
-            }
-        })
     },
 
     forgot(req, res, next) {
-        const email = req.query.email;
+        const email = req.body.email;
 
         if(!email) {
             return next( new AppError(404) );
         }
 
-        User.findOne( { email }, (err, user) => {
-            if(user) { 
-                let code = generate.generateKey(25),
-                    saveUser;
-    
-                user.resetPass = code;
-                user.save( (err, saveUser) => {
-                    if(saveUser.resetPass == code) {
-                        res.json({ code, saveUser });
-                    }else {
-                        next( new AppError(500) );
-                    }
-                });
-    
+        let user = await User.findOne( { email });
+
+        if(user) {
+            let code = generate.generateKey(25),
+                saveUser;
+
+            user.resetPass = code;
+            let saveUser = await user.save();
+
+            if(saveUser.resetPass == code) {
+                res.json({ code });
             }else {
-                next( new AppError(404) );
+                next( new AppError(500) );
             }
 
-        });
+        }else {
+            next( new AppError(404) );
+        }
     },
 }
