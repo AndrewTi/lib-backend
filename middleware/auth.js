@@ -13,9 +13,9 @@ module.exports = {
         token.decode(token, (err, decoded) => {
             User.findById(decoded.iss, (err, usr) => {
                 if(err) {
-                    next( new AppError(500));
+                    next( new AppError(500) );
                 }else if (!usr) {
-                    next( new AppError(401));
+                    next( new AppError(401) );
                 } else {
                     req._token = decoded;
                     req._user = usr;

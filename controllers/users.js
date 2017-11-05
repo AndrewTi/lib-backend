@@ -36,7 +36,7 @@ module.exports = {
                 }
             })
         }else {
-            next(new AppError(404));
+            next( new AppError(404) );
         }
     },
 
@@ -63,17 +63,12 @@ module.exports = {
         let saveUser = await user.save();
 
         if(saveUser) {
-            res.json({
-                result: {
-                    token: token.create(usr._id)
-                }
-            })
-            next( new AppError(201) );
+            res.json({ token: token.create(usr._id) })
         }
         
     },
 
-    forgot(req, res, next) {
+    async forgot(req, res, next) {
         const email = req.body.email;
 
         if(!email) {
@@ -99,4 +94,31 @@ module.exports = {
             next( new AppError(404) );
         }
     },
+
+    getMe(req, res, next) {
+        const user = req._user;
+
+        res.json({ user });
+    },
+
+    async updateMe(req, res, next) {
+        let {
+            _user,
+            body: {
+                name,
+                img
+            }
+        } = req;
+
+        _user.name = name || _user.name;
+        _user.img = img || _user.img;
+
+        let saveUser = await _user.save();
+        
+        if(saveUser) {
+            res.json({ ok: true, user: saveUser });
+        }else {
+            next( new AppError(500) );
+        }
+    }
 }

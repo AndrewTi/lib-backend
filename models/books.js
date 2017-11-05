@@ -2,22 +2,22 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const Books = new Schema({
-    title: { type:String },
-    authors: [{ name: String }],
-    keywords: String,
-    id: [{ type: mongoose.Schema.Types.ObjectId, ref: 'books' }],
-    body: String,
-    img: String,
-    comments: [{user: Number, body: String, date: Date}],
-    hidden: Boolean,
-    add: Number,
+    title    : { type: String, trim: true },
+    author   : [{ name: String }],
+    published: { type: Schema.Types.ObjectId, ref: "User"},
+    keywords : { type: String, trim: true },
+    body     : { type: String, trim: true },
+    img      : String,
+    hidden   : Boolean,
     meta: {
-        likes: Number,
-        rate: Number
+        likes: [{
+            user: { type: Schema.Types.ObjectId, ref: "User" },
+            date: Date
+        }]
     }
 }, {
     collection: "books"
 })
 
 
-module.exports = mongoose.model("Books", Books);
+module.exports = mongoose.model("Book", Books);
