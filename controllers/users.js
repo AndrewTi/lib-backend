@@ -75,7 +75,7 @@ module.exports = {
             return next( new AppError(404) );
         }
 
-        let user = await User.findOne( { email });
+        let user = await User.findOne({ email });
 
         if(user) {
             let code = generate.generateKey(25),
@@ -95,10 +95,12 @@ module.exports = {
         }
     },
 
-    getMe(req, res, next) {
+    async getMe(req, res, next) {
         const user = req._user;
 
-        res.json({ user });
+        let result = await user.populate("Book");
+
+        res.json({ result });
     },
 
     async updateMe(req, res, next) {

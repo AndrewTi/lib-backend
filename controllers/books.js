@@ -1,76 +1,111 @@
 const Books = require("../models/books.js");
+const AppError = require('../lig/app-error.js');
 
 
 module.exports = {
-    findBook(req, res, next) {
-        Books.findById(req.query.id, (err, book) => {
-            if(err) {
-                console.log(err);
-                next();
-            }else if(!book) {
-                console.log("not found book");
-                next();
+   async findBook(req, res, next) {
+        const id = req.query.id;
+
+        if(!id) next( new AppError(400) );
+
+        let book = await Books.findById(id);
+
+        (book)
+            ? res.json(book)
+            : next( new AppError(404) );
+    },
+
+   async search(req, res, next) {
+        const search = req.query.search;
+
+        if(!search) 
+            return next( new AppError(400) );
+
+        const regex = new RegExp(search,"g"),
+              foundBooks = [];
+
+        const books = await Books.find({});
+
+        if(!books) {
+            next( new AppError(404) );
+        }else {
+            foundBooks = books.filter(e => {
+                if(e.keywords && e.keywords
+                    .split(/,\s|,/)
+                    .some(el => regex.test(el))) {
+                        return e;
+                    }
+            });
+
+            (foundBooks)
+                ? res.json({ result: foundBooks })
+                : next( new AppError(404) );
+
+        }
+    },
+
+    async saveBook(req, res, next) {
+        let {
+            _user,
+            body: {
+                title,
+                authors,
+                keywords,
+                body,
+                img = null,
+                hidden = false
+            }} = req;
+
+        if( title &&
+            authors &&
+            keywords &&
+            body ) {
+
+            const book = new Books({
+                title,
+                authors,
+                published: _user._id,
+                keywords,
+                body,
+                img,
+                hidden
+            });
+
+            let result = await book.save();
+
+            if(result) {
+                res.json({ result });
             }else {
-                res.json(book);
+                next( new AppError(500) );
             }
-        })
+        }else {
+            next( new AppError(400) );
+        }
     },
 
-    search(req, res, next) {
-        const promise = new Promise((resovle, err) => {
-            Books.find({}, (err, data) => {
-                if(err) {
-                    console.log("err");
-                }else if(!data) {
-                    console.log("no data");
-                }else {
-                    let arr = [];
-                    let regex = new RegExp(req.query.search,"g");
-                    data.forEach(e => {
+    async removeBook(req, res, next) {
+        let {
+            _user,
+            body: { id }
+        } = req;
 
-                        if(e.keywords && e.keywords
-                                .split(/,\s|,/)
-                                .some(el => regex.test(el))) {
-                                    arr.push(e);
-                                }
-                    })
-                    resovle(arr);
-                }
-            })
-        });
+        if(!id) return next( new AppError(400) );
 
-        promise.then(data => {
-            res.json(data);
-            next();
-        })
-        
-    },
+        let book = await Books.findById(id);
 
-    saveBook(req, res, next) {
-        let addData = new Books({
-            title: "Hello world",
-            authors: [{name: "Andrew"}, {name: "Andrew2"}],
-            keywords: "world, hello, Andrew",
-        })
-
-        addData.save((err, save) => {
-            console.log(save);
-            next();
-        })
-    },
-
-    removeBook(req, res, next) {
-        Books.findByIdAndRemove(req.body.id, (err, book) => {
-            if(err) {
-                console.log("not remove");
-                next();
-            }else if(!book) {
-                console.log("not found book");
-                next();
+        if(!book) {
+            next( new AppError(404) );
+        }else {
+            
+            if(book.published != _user._id) {
+                next( new AppError(401) );
             }else {
-                console.log("delete success", book._id);
-                next();
+                let del = await Books.findByIdAndRemove(id);
+
+                (del) 
+                    ? res.json({ removed: del._id })
+                    : next( new AppError(500) );
             }
-        });
+        }
     }
 }

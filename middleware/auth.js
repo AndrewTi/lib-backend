@@ -15,7 +15,7 @@ module.exports = {
                 if(err) {
                     next( new AppError(500) );
                 }else if (!usr) {
-                    next( new AppError(401) );
+                    next( new AppError(404) );
                 } else {
                     req._token = decoded;
                     req._user = usr;
